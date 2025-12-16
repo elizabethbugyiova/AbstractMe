@@ -198,11 +198,20 @@ main{
     text-align:center;
 }
 
-/* buttony – wrapper vedľa seba */
-.stage-actions{
-    display:flex;
-    gap:12px;
+/* buttony pod menom – vedľa seba a na stred */
+.hero-name-actions{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 12px;
+    width: 100%;
 }
+
+.hero-name-actions .btn{
+    min-width: 130px;
+    text-align: center;
+}
+
 
 /* INPUT NA EDIT BEZ SPODNEJ LINKY */
 .name-input{
