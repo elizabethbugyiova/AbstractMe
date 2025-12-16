@@ -1,0 +1,282 @@
+<!doctype html>
+<html lang="sk">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Abstract Me</title>
+
+    <!-- p5.js -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.9.2/p5.min.js"></script>
+
+    <!-- fonty + štýly -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,200..800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap" rel="stylesheet">
+
+    <link rel="stylesheet" href="./css/style.css">
+</head>
+<body>
+
+<header>
+    <h1 class="bricolage-title">
+        Abstract <span class="headline-me">Me</span>
+    </h1>
+
+    <p class="subtitle">
+        Create your own abstract avatar! Play with shapes, colors, and forms to craft a unique reflection of yourself.
+        Let your creativity guide you and see what emerges!
+    </p>
+
+    <div class="hero-actions">
+        <button class="btn btn--orange" id="btn-random">randomize</button>
+        <button class="btn btn--orange" id="btn-reset">reset</button>
+        <button class="btn btn--pink" id="btn-download">download .png</button>
+    </div>
+
+    <!-- framerate hore, v rovnakom štýle ako ostatné ovládanie -->
+    <div class="hero-framerate">
+        <!-- FRAMERATE -->
+        <div class="control control--framerate">
+            <div class="control__value">
+                <output id="oFps">0</output>
+            </div>
+            <div class="control__slider">
+                <span class="control__icon">⚡︎</span>
+                <input
+                        id="inFps"
+                        type="range" min="0" max="30" step="1" value="0"
+                        oninput="setFps(+this.value)">
+            </div>
+            <div class="control__label">framerate</div>
+        </div>
+
+        <!-- BACKGROUND COLOR -->
+        <div class="control control--framerate">
+            <div class="control__value">
+                <output id="oBgHue">35</output>
+            </div>
+            <div class="control__slider">
+                <span class="control__icon">↔</span>
+                <input
+                        id="inBgHue"
+                        type="range"
+                        min="0" max="360" step="5" value="35"
+                        oninput="setBgHue(+this.value)">
+            </div>
+            <div class="control__label">background color</div>
+        </div>
+    </div>
+
+
+</header>
+
+<main>
+    <div class="stage">
+        <div id="p5-holder"></div>
+
+        <!-- MENO POD AVATAROM (vo vnútri stage) -->
+        <div class="hero-name">
+            <div class="name-pill">
+                <span class="name-value" id="avatarName">BlueCookie</span>
+            </div>
+
+            <div class="hero-name-actions">
+                <!-- použijeme rovnaké class ako hore v hero-actions -->
+                <button class="btn btn--orange" id="btn-change-name" type="button">
+                    change name
+                </button>
+                <button class="btn btn--pink" id="btn-custom-name" type="button">
+                    custom name
+                </button>
+            </div>
+        </div>
+
+    </div>
+</main>
+
+<!-- LEFT PANEL – head (avatar core) -->
+<aside class="side left">
+    <span class="chip">head</span>
+
+    <div class="controls">
+
+        <!-- disturbance level -->
+        <div class="control">
+            <div class="control__value">
+                <output id="oHeadJitter">0.60</output>
+            </div>
+            <div class="control__slider">
+                <span class="control__icon">✺</span>
+                <input
+                        id="inHeadJitter"
+                        type="range" min="0" max="1" step="0.05" value="0.6"
+                        oninput="oHeadJitter.textContent=val(this,2); setOffset(+this.value)">
+            </div>
+            <div class="control__label">disturbance level</div>
+        </div>
+
+        <!-- grid shape -->
+        <div class="control">
+            <div class="control__value">
+                <output id="oCell">1</output>
+            </div>
+            <div class="control__slider">
+                <span class="control__icon">☰</span>
+                <input
+                        id="inGridShape"
+                        type="range" min="1" max="5" step="1" value="1"
+                        oninput="oCell.textContent=this.value; setGridShape(+this.value)">
+            </div>
+            <div class="control__label">grid shape</div>
+        </div>
+
+        <!-- shape edges -->
+        <div class="control">
+            <div class="control__value">
+                <output id="oSides">4</output>
+            </div>
+            <div class="control__slider">
+                <span class="control__icon">⬠</span>
+                <input
+                        id="inSides"
+                        type="range" min="2" max="11" step="1" value="4"
+                        oninput="updateEdgesOutput(this); setSidesMapped(+this.value)">
+            </div>
+            <div class="control__label">shape edges</div>
+        </div>
+
+        <!-- shape size (head) – limitované, aby neliezlo hore -->
+        <div class="control">
+            <div class="control__value">
+                <output id="oScale">0.80</output>
+            </div>
+            <div class="control__slider">
+                <span class="control__icon">●</span>
+                <input
+                        id="inScale"
+                        type="range" min="0.2" max="1.2" step="0.05" value="0.8"
+                        oninput="oScale.textContent=val(this,2); setScale(+this.value)">
+            </div>
+            <div class="control__label">shape size</div>
+        </div>
+
+        <!-- shapes per cell -->
+        <div class="control">
+            <div class="control__value">
+                <output id="oShapesPerCell">1</output>
+            </div>
+            <div class="control__slider">
+                <span class="control__icon">✶</span>
+                <input
+                        id="inShapesPerCell"
+                        type="range" min="1" max="5" step="1" value="1"
+                        oninput="oShapesPerCell.textContent=this.value; setShapesPerCell(+this.value)">
+            </div>
+            <div class="control__label">shapes per cell</div>
+        </div>
+
+        <!-- rotate -->
+        <div class="control">
+            <div class="control__value">
+                <output id="oRot">0</output>
+            </div>
+            <div class="control__slider">
+                <span class="control__icon">↻</span>
+                <input
+                        id="inRot"
+                        type="range" min="-180" max="180" step="1" value="0"
+                        oninput="oRot.textContent=this.value; setRotation(+this.value)">
+            </div>
+            <div class="control__label">rotate</div>
+        </div>
+
+        <!-- diagonal -->
+        <div class="control">
+            <div class="control__value">
+                <output id="oBias">0</output>
+            </div>
+            <div class="control__slider">
+                <span class="control__icon">⤢</span>
+                <input
+                        id="inBias"
+                        type="range" min="-1" max="1" step="0.05" value="0"
+                        oninput="oBias.textContent=val(this,2); setDiagonalShear(+this.value)">
+            </div>
+            <div class="control__label">diagonal</div>
+        </div>
+
+        <!-- scale X -->
+        <div class="control">
+            <div class="control__value">
+                <output id="oSX">1.00</output>
+            </div>
+            <div class="control__slider">
+                <span class="control__icon">⇆</span>
+                <input
+                        id="inSX"
+                        type="range" min="0.5" max="1.8" step="0.05" value="1"
+                        oninput="oSX.textContent=val(this,2); setScaleX(+this.value)">
+            </div>
+            <div class="control__label">scale X</div>
+        </div>
+
+        <!-- scale Y -->
+        <div class="control">
+            <div class="control__value">
+                <output id="oSY">1.00</output>
+            </div>
+            <div class="control__slider">
+                <span class="control__icon">⇅</span>
+                <input
+                        id="inSY"
+                        type="range" min="0.5" max="1.8" step="0.05" value="1"
+                        oninput="oSY.textContent=val(this,2); setScaleY(+this.value)">
+            </div>
+            <div class="control__label">scale Y</div>
+        </div>
+
+        <!-- color – full width -->
+        <div class="control control--full">
+            <div class="control__value">
+                <output id="oHue">0</output>
+            </div>
+            <div class="control__slider">
+                <span class="control__icon">↔</span>
+                <input
+                        id="inHue"
+                        type="range" min="0" max="360" step="5" value="0"
+                        oninput="oHue.textContent=this.value; setHue(+this.value)">
+            </div>
+            <div class="control__label">color</div>
+        </div>
+
+    </div>
+</aside>
+
+<!-- RIGHT PANEL – hair / eyes / nose -->
+<aside class="side right">
+    <div class="tabs">
+        <button class="tab active" id="tabHair" onclick="switchLayer('hair')">hair</button>
+        <button class="tab" id="tabEyes" onclick="switchLayer('eyes')">eyes</button>
+        <button class="tab" id="tabNose" onclick="switchLayer('nose')">nose</button>
+    </div>
+
+    <!-- UI pre jednotlivé vrstvy generuje sketch.js -->
+    <div class="controls" id="layerControls"></div>
+</aside>
+
+<footer class="site-footer">
+    <div class="site-footer__inner">
+        © <a class="site-footer__link" href="https://elizabethbugyiova.com" target="_blank" rel="noopener noreferrer">
+        Elizabeth Bugyiová
+    </a> 2025
+    </div>
+</footer>
+
+
+<!-- p5 sketch -->
+<script src="./js/sketch.js"></script>
+
+</body>
+</html>
